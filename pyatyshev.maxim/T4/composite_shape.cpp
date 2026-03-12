@@ -120,3 +120,4 @@ std::string CompositeShape::getDetails() const
     }
     return oss.str();
 }
+

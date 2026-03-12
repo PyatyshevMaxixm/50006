@@ -63,3 +63,4 @@ double IsoscelesTrapezoid::getTop() const
 {
     return bottomLeft_.y + height_;
 }
+
