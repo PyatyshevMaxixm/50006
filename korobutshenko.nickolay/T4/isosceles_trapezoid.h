@@ -24,7 +24,7 @@ class IsoscelesTrapezoid : public Shape
     double lengthBottom_;
     double lengthTop_;
     double height_;
-    
+
     Point getLeftTop() const;
     Point getRightBottom() const;
     Point getRightTop() const;

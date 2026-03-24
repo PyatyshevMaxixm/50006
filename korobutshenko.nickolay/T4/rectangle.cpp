@@ -69,7 +69,7 @@ void Rectangle::getBoundingBox(double& minX, double& minY,
 void Rectangle::print() const
 {
   Point center = getCenter();
-  std::cout << "[" << getName() << ", ("  
+  std::cout << "[" << getName() << ", ("
             << std::fixed << std::setprecision(2) << center.getX()
             << ", " << std::setprecision(2) << center.getY() << "), "
             << std::setprecision(2) << getArea() << "]";
