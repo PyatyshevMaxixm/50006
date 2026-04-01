@@ -7,13 +7,9 @@
 #include <iomanip>
 #include <cmath>
 
-CompositeShape::CompositeShape()
+void CompositeShape::addShape(std::unique_ptr<Shape> shape)
 {
-}
-
-void CompositeShape::addShape(std::shared_ptr<Shape> shape)
-{
-    shapes_.push_back(shape);
+    shapes_.push_back(std::move(shape));
 }
 
 double CompositeShape::getArea() const
@@ -36,47 +32,33 @@ Point CompositeShape::getCenter() const
 
     for (const auto &s : shapes_)
     {
-        double l, r, b, t;
-        bool found = false;
-
-        auto rect = std::dynamic_pointer_cast<Rectangle>(s);
+        const Rectangle* rect = dynamic_cast<const Rectangle*>(s.get());
         if (rect)
         {
-            l = rect->getLeft();
-            r = rect->getRight();
-            b = rect->getBottom();
-            t = rect->getTop();
-            found = true;
+            minX = std::min(minX, rect->getLeft());
+            maxX = std::max(maxX, rect->getRight());
+            minY = std::min(minY, rect->getBottom());
+            maxY = std::max(maxY, rect->getTop());
+            continue;
         }
 
-        if (!found)
+        const IsoscelesTrapezoid* trap = dynamic_cast<const IsoscelesTrapezoid*>(s.get());
+        if (trap)
         {
-            auto trap = std::dynamic_pointer_cast<IsoscelesTrapezoid>(s);
-            if (trap)
-            {
-                l = trap->getLeft();
-                r = trap->getRight();
-                b = trap->getBottom();
-                t = trap->getTop();
-                found = true;
-            }
+            minX = std::min(minX, trap->getLeft());
+            maxX = std::max(maxX, trap->getRight());
+            minY = std::min(minY, trap->getBottom());
+            maxY = std::max(maxY, trap->getTop());
+            continue;
         }
 
-        if (!found)
-        {
-            Point c = s->getCenter();
-            double area = s->getArea();
-            double size = std::sqrt(area);
-            l = c.x - size;
-            r = c.x + size;
-            b = c.y - size;
-            t = c.y + size;
-        }
-
-        minX = std::min(minX, l);
-        maxX = std::max(maxX, r);
-        minY = std::min(minY, b);
-        maxY = std::max(maxY, t);
+        Point c = s->getCenter();
+        double area = s->getArea();
+        double size = std::sqrt(area);
+        minX = std::min(minX, c.x - size);
+        maxX = std::max(maxX, c.x + size);
+        minY = std::min(minY, c.y - size);
+        maxY = std::max(maxY, c.y + size);
     }
 
     return Point((minX + maxX) / 2.0, (minY + maxY) / 2.0);
