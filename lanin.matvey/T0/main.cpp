@@ -2,7 +2,7 @@
 
 int main()
 {
-    std::cout << "Lanin.Matvey" << std::endl;
+    std::cout << "lanin.matvey" << std::endl;
 
     return 0;
 }
