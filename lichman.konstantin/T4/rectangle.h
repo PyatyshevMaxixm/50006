@@ -1,20 +1,18 @@
-#ifndef RECTANGLE_H
-#define RECTANGLE_H
-
+#pragma once
 #include "shape.h"
 
-class Rectangle : public Shape {
-public:
-  Rectangle(Point bottomLeft, Point topRight);
-  double getArea() const override;
-  Point getCenter() const override;
-  void move(double dx, double dy) override;
-  void scale(double factor) override;
-  std::string getName() const override;
-
+class Rectangle : public Shape
+{
 private:
-  Point bottomLeft_;
-  Point topRight_;
+	Point leftBottom_;
+	Point rightTop_;
+public: 
+	Rectangle(const Point& leftBottom, const Point& rightTop);
+
+	double getArea() const override;
+	Point getCenter() const override;
+	void move(double dx, double dy) override;
+	void scale(double k) override;
+	std::string getName() const override;
 };
 
-#endif

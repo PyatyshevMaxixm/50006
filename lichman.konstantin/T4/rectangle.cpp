@@ -1,32 +1,44 @@
-#include "rectangle.h"
+#include "Rectangle.h"
 
-Rectangle::Rectangle(Point bottomLeft, Point topRight)
-    : bottomLeft_(bottomLeft), topRight_(topRight) {}
-
-double Rectangle::getArea() const {
-  double width  = topRight_.x - bottomLeft_.x;
-  double height = topRight_.y - bottomLeft_.y;
-  return width * height;
+Rectangle::Rectangle(const Point& leftBottom, const Point& rightTop): 
+    leftBottom_(leftBottom), rightTop_(rightTop)
+{
 }
 
-Point Rectangle::getCenter() const {
-  return { (bottomLeft_.x + topRight_.x) / 2.0,
-           (bottomLeft_.y + topRight_.y) / 2.0 };
+double Rectangle::getArea() const
+{
+  return (rightTop_.y - leftBottom_.y) * 
+      (rightTop_.x - leftBottom_.x);
 }
 
-void Rectangle::move(double dx, double dy) {
-  bottomLeft_.x += dx;  bottomLeft_.y += dy;
-  topRight_.x   += dx;  topRight_.y   += dy;
+Point Rectangle::getCenter() const
+{
+  Point center;
+  center.x = (leftBottom_.x + rightTop_.x) / 2.0;
+  center.y = (leftBottom_.y + rightTop_.y) / 2.0;
+  return center;
 }
 
-void Rectangle::scale(double factor) {
-  Point c = getCenter();
-  bottomLeft_.x = c.x + (bottomLeft_.x - c.x) * factor;
-  bottomLeft_.y = c.y + (bottomLeft_.y - c.y) * factor;
-  topRight_.x   = c.x + (topRight_.x   - c.x) * factor;
-  topRight_.y   = c.y + (topRight_.y   - c.y) * factor;
+void Rectangle::move(double dx, double dy)
+{
+  leftBottom_.x += dx;
+  leftBottom_.y += dy;
+  rightTop_.x += dx;
+  rightTop_.y += dy;
 }
 
-std::string Rectangle::getName() const {
+void Rectangle::scale(double k)
+{
+  Point center = getCenter();
+
+  leftBottom_.x = (center.x - leftBottom_.x) * k + center.x;
+  leftBottom_.y = (center.y - leftBottom_.y) * k + center.y;
+
+  rightTop_.x = (center.x - rightTop_.x) * k + center.x;
+  rightTop_.x = (center.x - rightTop_.x) * k + center.x;
+}
+
+std::string Rectangle::getName() const
+{
   return "RECTANGLE";
 }

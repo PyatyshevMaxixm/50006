@@ -1,13 +1,16 @@
 #pragma once
 #include "shape.h"
+#include <vector>
+#include <memory>
 
-class Circle : public Shape {
+class CompositeShape : public Shape {
 private:
-    Point center_;
-    double radius_;
+    std::vector<std::shared_ptr<Shape>> shapes_;
 
 public:
-    Circle(const Point& center, double radius);
+    CompositeShape() = default;
+
+    void addShape(const std::shared_ptr<Shape>& shape);
 
     double getArea() const override;
     Point getCenter() const override;
@@ -15,3 +18,4 @@ public:
     void scale(double factor) override;
     std::string getName() const override;
 };
+
