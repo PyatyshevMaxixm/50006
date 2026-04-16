@@ -1,4 +1,4 @@
-#include "CompositeShape.h"
+#include "compositeshape.h"
 
 void CompositeShape::addShape(const std::shared_ptr<Shape>& shape) {
     shapes_.push_back(shape);
