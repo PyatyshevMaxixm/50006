@@ -54,4 +54,3 @@ std::string CompositeShape::getName() const {
     return "COMPOSITE";
 }
 
-#endif

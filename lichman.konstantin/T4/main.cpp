@@ -5,7 +5,7 @@
 
 #include "rectangle.h"
 #include "circle.h"
-#include "compositeshape.h"
+#include "Compositeshape.h"
 
 void printShape(const std::shared_ptr<Shape>& shape) {
     if (shape->getName() == "COMPOSITE")

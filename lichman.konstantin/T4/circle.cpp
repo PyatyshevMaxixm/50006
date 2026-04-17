@@ -27,4 +27,3 @@ std::string Circle::getName() const {
     return "CIRCLE";
 }
 
-#endif

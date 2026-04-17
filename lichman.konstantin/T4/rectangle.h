@@ -1,5 +1,5 @@
 #ifndef RECTANGLE_H
-#indef RECTANGLE_H
+#define RECTANGLE_H
 
 #include "shape.h"
 
