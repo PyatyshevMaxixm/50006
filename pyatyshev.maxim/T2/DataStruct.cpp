@@ -59,6 +59,16 @@ static bool parseUnsignedLongLong(const std::string& str, unsigned long long& va
     }
 }
 
+static bool parseString(const std::string& str, std::string& value)
+{
+    if (str.length() < 2) return false;
+    if (str.front() != '"') return false;
+    if (str.back() != '"') return false;
+
+    value = str.substr(1, str.length() - 2);
+    return true;
+}
+
 std::istream& operator>>(std::istream& in, DataStruct& data)
 {
     std::string line;
@@ -78,7 +88,7 @@ std::istream& operator>>(std::istream& in, DataStruct& data)
         bool hasKey3 = false;
         DataStruct temp;
 
-        // Ищем все поля
+        // Ищем все поля, учитывая что в key3 может быть двоеточие
         size_t pos = 0;
         while (pos < content.length()) {
             size_t colonPos = content.find(':', pos);
@@ -91,10 +101,31 @@ std::istream& operator>>(std::istream& in, DataStruct& data)
             std::string keyName = content.substr(keyStart, spacePos - keyStart);
             size_t valueStart = spacePos + 1;
 
-            size_t nextColon = content.find(':', valueStart);
-            if (nextColon == std::string::npos) break;
+            // Для key3 нужно искать закрывающую кавычку, а потом двоеточие
+            size_t nextColon = std::string::npos;
+            std::string value;
 
-            std::string value = trim(content.substr(valueStart, nextColon - valueStart));
+            if (keyName == "key3") {
+                // Ищем открывающую кавычку
+                size_t quoteStart = content.find('"', valueStart);
+                if (quoteStart != std::string::npos) {
+                    // Ищем закрывающую кавычку после открывающей
+                    size_t quoteEnd = content.find('"', quoteStart + 1);
+                    if (quoteEnd != std::string::npos) {
+                        value = content.substr(quoteStart, quoteEnd - quoteStart + 1);
+                        // Ищем двоеточие после закрывающей кавычки
+                        nextColon = content.find(':', quoteEnd + 1);
+                    }
+                }
+            } else {
+                // Для key1 и key2 ищем ближайшее двоеточие
+                nextColon = content.find(':', valueStart);
+                if (nextColon != std::string::npos) {
+                    value = trim(content.substr(valueStart, nextColon - valueStart));
+                }
+            }
+
+            if (nextColon == std::string::npos) break;
 
             if (keyName == "key1") {
                 if (parseDouble(value, temp.key1)) {
@@ -105,8 +136,7 @@ std::istream& operator>>(std::istream& in, DataStruct& data)
                     hasKey2 = true;
                 }
             } else if (keyName == "key3") {
-                if (value.length() >= 2 && value.front() == '"' && value.back() == '"') {
-                    temp.key3 = value.substr(1, value.length() - 2);
+                if (parseString(value, temp.key3)) {
                     hasKey3 = true;
                 }
             }
