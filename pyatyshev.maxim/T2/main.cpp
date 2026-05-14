@@ -12,14 +12,16 @@ int main()
 
 
     while (true) {
-        DataStruct temp;
+        auto begin = std::istream_iterator<DataStruct>(std::cin);
+        auto end = std::istream_iterator<DataStruct>();
 
-        if (std::cin >> temp) {
-            data.push_back(temp);
-        } else if (std::cin.eof()) {
+        std::copy(begin, end, std::back_inserter(data));
+
+        if (std::cin.eof()) {
             break;
-        } else {
+        }
 
+        if (std::cin.fail()) {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
