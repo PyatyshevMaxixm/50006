@@ -2,6 +2,7 @@
 #include <sstream>
 #include <cctype>
 #include <iomanip>
+#include <algorithm>
 
 static std::string trim(const std::string& str)
 {
@@ -11,132 +12,112 @@ static std::string trim(const std::string& str)
     return str.substr(start, end - start + 1);
 }
 
-static bool isDecimalNumber(const std::string& str)
+static bool parseDouble(const std::string& str, double& value)
 {
-    if (str.empty()) return false;
-    for (char c : str) {
+    if (str.length() < 2) return false;
+    if (str.back() != 'd' && str.back() != 'D') return false;
+
+    std::string numStr = str.substr(0, str.length() - 1);
+    size_t dotPos = numStr.find('.');
+    if (dotPos == std::string::npos) return false;
+    if (dotPos == 0 || dotPos == numStr.length() - 1) return false;
+
+    for (size_t i = 0; i < numStr.length(); ++i) {
+        if (i == dotPos) continue;
+        if (!std::isdigit(static_cast<unsigned char>(numStr[i]))) return false;
+    }
+
+    try {
+        size_t idx = 0;
+        value = std::stod(numStr, &idx);
+        return idx == numStr.length();
+    } catch (...) {
+        return false;
+    }
+}
+
+static bool parseUnsignedLongLong(const std::string& str, unsigned long long& value)
+{
+    if (str.length() < 4) return false;
+
+    std::string suffix = str.substr(str.length() - 3);
+    if (suffix != "ull" && suffix != "ULL") return false;
+
+    std::string numStr = str.substr(0, str.length() - 3);
+    if (numStr.empty()) return false;
+
+    for (char c : numStr) {
         if (!std::isdigit(static_cast<unsigned char>(c))) return false;
     }
-    return true;
+
+    try {
+        size_t idx = 0;
+        value = std::stoull(numStr, &idx);
+        return idx == numStr.length();
+    } catch (...) {
+        return false;
+    }
 }
 
 std::istream& operator>>(std::istream& in, DataStruct& data)
 {
     std::string line;
 
-    if (!std::getline(in, line)) {
-        in.setstate(std::ios::failbit);
-        return in;
-    }
+    while (std::getline(in, line)) {
+        line = trim(line);
+        if (line.empty()) continue;
 
-    line = trim(line);
-    if (line.empty()) {
-        in.setstate(std::ios::failbit);
-        return in;
-    }
-
-    if (line.length() < 2 || line.front() != '(' || line.back() != ')') {
-        in.setstate(std::ios::failbit);
-        return in;
-    }
-
-    std::string content = line.substr(1, line.length() - 2);
-
-    bool hasKey1 = false;
-    bool hasKey2 = false;
-    bool hasKey3 = false;
-    DataStruct temp;
-
-    size_t pos = 0;
-    while (pos < content.length()) {
-        if (content[pos] != ':') {
-            ++pos;
+        if (line.length() < 2 || line.front() != '(' || line.back() != ')') {
             continue;
         }
 
-        size_t keyStart = pos + 1;
-        size_t spacePos = content.find(' ', keyStart);
-        if (spacePos == std::string::npos) break;
+        std::string content = line.substr(1, line.length() - 2);
 
-        std::string name = content.substr(keyStart, spacePos - keyStart);
-        size_t valueStart = spacePos + 1;
+        bool hasKey1 = false;
+        bool hasKey2 = false;
+        bool hasKey3 = false;
+        DataStruct temp;
 
-        if (name == "key1") {
-            size_t valueEnd = content.find(':', valueStart);
-            if (valueEnd == std::string::npos) valueEnd = content.length();
-            std::string value = trim(content.substr(valueStart, valueEnd - valueEnd));
+        // Ищем все поля
+        size_t pos = 0;
+        while (pos < content.length()) {
+            size_t colonPos = content.find(':', pos);
+            if (colonPos == std::string::npos) break;
 
-            if (value.length() > 2 && (value.back() == 'd' || value.back() == 'D')) {
-                std::string numStr = value.substr(0, value.length() - 1);
-                size_t dotPos = numStr.find('.');
+            size_t keyStart = colonPos + 1;
+            size_t spacePos = content.find(' ', keyStart);
+            if (spacePos == std::string::npos) break;
 
-                if (dotPos != std::string::npos && dotPos > 0
-                    && dotPos < numStr.length() - 1)
-                {
-                    bool valid = true;
-                    for (size_t i = 0; i < numStr.length(); ++i) {
-                        if (i == dotPos) continue;
-                        if (!std::isdigit(static_cast<unsigned char>(numStr[i]))) {
-                            valid = false;
-                            break;
-                        }
-                    }
-                    if (valid) {
-                        try {
-                            size_t idx = 0;
-                            temp.key1 = std::stod(numStr, &idx);
-                            if (idx == numStr.length()) hasKey1 = true;
-                        } catch (...) {}
-                    }
-                }
-            }
-            pos = valueEnd;
-        }
-        else if (name == "key2") {
-            size_t valueEnd = content.find(':', valueStart);
-            if (valueEnd == std::string::npos) valueEnd = content.length();
-            std::string value = trim(content.substr(valueStart, valueEnd - valueStart));
+            std::string keyName = content.substr(keyStart, spacePos - keyStart);
+            size_t valueStart = spacePos + 1;
 
-            if (value.length() >= 4) {
-                std::string suffix = value.substr(value.length() - 3);
-                if (suffix == "ull" || suffix == "ULL") {
-                    std::string numStr = value.substr(0, value.length() - 3);
-                    if (isDecimalNumber(numStr)) {
-                        try {
-                            size_t idx = 0;
-                            temp.key2 = std::stoull(numStr, &idx);
-                            if (idx == numStr.length()) hasKey2 = true;
-                        } catch (...) {}
-                    }
-                }
-            }
-            pos = valueEnd;
-        }
-        else if (name == "key3") {
-            size_t quoteStart = content.find('"', valueStart);
-            if (quoteStart != std::string::npos) {
-                size_t quoteEnd = content.find('"', quoteStart + 1);
-                if (quoteEnd != std::string::npos) {
-                    temp.key3 = content.substr(quoteStart + 1,
-                                              quoteEnd - quoteStart - 1);
-                    hasKey3 = true;
-                    pos = content.find(':', quoteEnd + 1);
-                    if (pos == std::string::npos) break;
-                    continue;
-                }
-            }
-            pos = content.find(':', valueStart);
-            if (pos == std::string::npos) break;
-        }
-        else {
             size_t nextColon = content.find(':', valueStart);
-            pos = (nextColon == std::string::npos) ? content.length() : nextColon;
-        }
-    }
+            if (nextColon == std::string::npos) break;
 
-    if (hasKey1 && hasKey2 && hasKey3) {
-        data = temp;
-        return in;
+            std::string value = trim(content.substr(valueStart, nextColon - valueStart));
+
+            if (keyName == "key1") {
+                if (parseDouble(value, temp.key1)) {
+                    hasKey1 = true;
+                }
+            } else if (keyName == "key2") {
+                if (parseUnsignedLongLong(value, temp.key2)) {
+                    hasKey2 = true;
+                }
+            } else if (keyName == "key3") {
+                if (value.length() >= 2 && value.front() == '"' && value.back() == '"') {
+                    temp.key3 = value.substr(1, value.length() - 2);
+                    hasKey3 = true;
+                }
+            }
+
+            pos = nextColon;
+        }
+
+        if (hasKey1 && hasKey2 && hasKey3) {
+            data = temp;
+            return in;
+        }
     }
 
     in.setstate(std::ios::failbit);
