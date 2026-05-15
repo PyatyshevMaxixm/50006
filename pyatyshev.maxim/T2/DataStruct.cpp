@@ -88,7 +88,7 @@ std::istream& operator>>(std::istream& in, DataStruct& data)
         bool hasKey3 = false;
         DataStruct temp;
 
-        // Ищем все поля, учитывая что в key3 может быть двоеточие
+
         size_t pos = 0;
         while (pos < content.length()) {
             size_t colonPos = content.find(':', pos);
@@ -101,24 +101,24 @@ std::istream& operator>>(std::istream& in, DataStruct& data)
             std::string keyName = content.substr(keyStart, spacePos - keyStart);
             size_t valueStart = spacePos + 1;
 
-            // Для key3 нужно искать закрывающую кавычку, а потом двоеточие
+
             size_t nextColon = std::string::npos;
             std::string value;
 
             if (keyName == "key3") {
-                // Ищем открывающую кавычку
+
                 size_t quoteStart = content.find('"', valueStart);
                 if (quoteStart != std::string::npos) {
-                    // Ищем закрывающую кавычку после открывающей
+
                     size_t quoteEnd = content.find('"', quoteStart + 1);
                     if (quoteEnd != std::string::npos) {
                         value = content.substr(quoteStart, quoteEnd - quoteStart + 1);
-                        // Ищем двоеточие после закрывающей кавычки
+
                         nextColon = content.find(':', quoteEnd + 1);
                     }
                 }
             } else {
-                // Для key1 и key2 ищем ближайшее двоеточие
+
                 nextColon = content.find(':', valueStart);
                 if (nextColon != std::string::npos) {
                     value = trim(content.substr(valueStart, nextColon - valueStart));
